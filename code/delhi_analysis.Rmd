@@ -1,0 +1,92 @@
+---
+title: "Delhi Environmental Sample Analysis"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#install.packages("pacman") # to install pacman if not already installed.
+# import these packages using pacman
+pacman::p_load(dplyr,ggplot2,hrbrthemes,ggpubr,readxl)
+```
+
+# 1.0 Import data
+
+Read in the data from the excel file and print the first 6 rows using head()
+
+```{r}
+df <- readxl::read_excel(path = "../data/Environmental_Samples_Data_Jemma.xlsx",sheet = "Raw Data",skip = 5) %>% janitor::clean_names()
+df %>% head()
+```
+
+## 2.1 Initial analysis
+
+How many 0 values does each site have. It dictates how we plot the values further down. Log transforming the axis to make things readable means that we will remove all the 0 values.
+
+```{r zeros}
+df %>% 
+  filter(cfu_ml==0) %>% 
+  group_by(sample_type) %>% 
+  tally()
+
+```
+
+Some summary statistics for the sample types - this creates a table of values.
+
+```{r initial analysis}
+df %>% 
+  group_by(sample_type) %>% 
+  summarise(Mean=mean(cfu_ml),Median=median(cfu_ml),SD=sd(cfu_ml))
+```
+
+## 2.2 Some initial plots
+
+```{r exploratory plots}
+
+# plot of cfu_ml by sample type and fill by site
+df %>% 
+  ggplot()+
+  geom_violin(aes(x=sample_type,y=cfu_ml,fill=site),draw_quantiles = c(0.25,.5,.75),show.legend = FALSE)+
+  geom_jitter(aes(x=sample_type,y=cfu_ml),alpha=0.2)+
+  scale_y_continuous(trans="log10")+
+  scale_fill_brewer(palette = "Pastel1")+
+  scale_x_discrete(guide = guide_axis(angle=90))+
+  facet_grid(~site,scale="free_x")+
+  hrbrthemes::theme_ipsum()+
+  xlab("Sample")+
+  ylab("CFU per ml [log scale]")
+
+```
+
+### 2.1.1 Distal vs proximal samples.
+
+```{r distal vs proximal}
+# Only porximal/distal 
+df %>% 
+  filter(proximal_distal!="NA") %>% 
+  ggplot()+
+  geom_violin(aes(x=sample_type,y=cfu_ml,fill=site),draw_quantiles = c(0.25,.5,.75),show.legend = TRUE)+
+  scale_y_continuous(trans="log10")+
+  scale_fill_brewer(palette = "Pastel1")+
+  scale_x_discrete(guide = guide_axis(angle=90))+
+  facet_grid(~proximal_distal,scale="free_x")+
+  hrbrthemes::theme_ipsum()+ 
+  xlab("Sample")+
+  ylab("CFU per ml [log scale]") #->b
+
+#ggarrange(a,b,ncol= 2,labels = "auto")
+```
+
+## 3.0 Statistical analysis
+
+$H_0$: there is a difference between prominal vs distal samples. We need to aggree on how to deal with censoring as the we get 
+
+```{r stat analysis}
+t.test(data=df %>% filter(proximal_distal!="NA" & cfu_ml>0),log10(cfu_ml)~proximal_distal) 
+```
+
+```{r}
+
+```
+
