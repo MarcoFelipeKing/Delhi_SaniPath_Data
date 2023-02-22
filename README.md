@@ -3,6 +3,11 @@ Analysis of SaniPath style data collected November 2022 by Jemma Phillips
 
 ## Updates
 
+### 22nd Feb 2023
+
+Noted that left censoring was set to 600 cfu_ml. So to exclude their effect need to filter out all those at 600. No right censoring was included
+
+
 ### 30th Jan 2023
 Created new file structure:
 
