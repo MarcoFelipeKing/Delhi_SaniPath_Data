@@ -40,6 +40,21 @@ df %>%
   summarise(Mean=mean(cfu_ml),Median=median(cfu_ml),SD=sd(cfu_ml))
 ```
 
+What is the correlation between the 100 dilution vs 10 dilution
+
+```{r}
+df %>% 
+  mutate(dilution_factor=as.factor(dilution_factor_10_100_1000_etc)) %>% 
+  ggplot()+
+  geom_violin(aes(x=dilution_factor,y=cfu_ml),draw_quantiles = c(0.25,0.5,.75))+
+  scale_y_continuous(trans="log10",labels = scales::label_number())+
+  facet_wrap(~sample_type,nrow = 2)+
+  ggpubr::theme_pubclean()+
+  xlab("Dilution factor")+
+  ylab("CFU per ml [log10 scale]")
+```
+
+
 ## 2.2 Some initial plots
 
 ```{r exploratory plots}
